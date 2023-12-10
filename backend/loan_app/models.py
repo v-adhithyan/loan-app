@@ -8,8 +8,8 @@ class LoanApplication(models.Model):
 
 
 class LoanDetails(models.Model):
-    loan_application = models.OneToOneField(LoanApplication, on_delete=models.PROTECT)
-    name = models.CharField(max_length=100, blank=False, null=False)
+    loan_application = models.OneToOneField(LoanApplication, on_delete=models.PROTECT, null=False, blank=False)
+    business_name = models.CharField(max_length=100, blank=False, null=False)
     established_year = models.PositiveIntegerField(blank=False, null=False)
     loan_amount = models.PositiveIntegerField(blank=False, null=False)
     balance_sheet = models.JSONField(blank=False, null=False)
