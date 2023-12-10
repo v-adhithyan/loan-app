@@ -41,12 +41,19 @@ const Home = () => {
 
   const handleSubmitApplication = async () => {
     try {
+      const data = {
+        business_name: formData.businessName,
+        established_year: formData.establishedYear,
+        loan_amount: formData.loanAmount,
+        accounting_provider: formData.accountingProvider,
+        balance_sheet: balanceSheet,
+      };
       const response = await fetch('http://localhost:8000/api/loan-application/submit/', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ ...formData, balanceSheet }),
+        body: JSON.stringify(data),
       });
 
       if (response.status === 200) {
