@@ -9,14 +9,14 @@ from loan_app.serializers import LoanDetailsSerializer
 from rest_framework.response import Response
 
 from loan_app.integrations.decision_engine.utils import calculate_preassessment_value
-
 from loan_app.integrations.decision_engine.handler import DecisionEngineHandler
+from loan_app.constants import LOAN_APPLICATION_DOES_NOT_EXIST_MESSAGE, LOAN_APPLICATION_SUBMISSION_SUCCESS_MESSAGE
 
 
 @api_view(['POST'])
 def initiate_loan_application(request):
     loan_application = LoanApplication.objects.create()
-    return JsonResponse({
+    return Response(data={
         'uuid': loan_application.uuid
     })
 
@@ -32,7 +32,7 @@ def submit_loan_application(request):
         try:
             # Get or create a LoanApplication object using the provided uuid
             uuid = validated_data['uuid']
-            loan_application, created = LoanApplication.objects.get_or_create(uuid=uuid)
+            loan_application = LoanApplication.objects.get(uuid=uuid)
 
             # Create a LoanDetails object associated with the LoanApplication
             loan_details = LoanDetails(
@@ -52,13 +52,13 @@ def submit_loan_application(request):
             decision_engine.get_decision()
 
             return Response(
-                {'message': 'LoanDetails created successfully'},
+                data={'message': LOAN_APPLICATION_SUBMISSION_SUCCESS_MESSAGE},
                 status=status.HTTP_201_CREATED
             )
         except LoanApplication.DoesNotExist:
             return Response(
-                {'error': 'LoanApplication with the provided UUID does not exist'},
-                status=status.HTTP_404_NOT_FOUND
+                data={'error': LOAN_APPLICATION_DOES_NOT_EXIST_MESSAGE},
+                status=status.HTTP_400_BAD_REQUEST
             )
     return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
