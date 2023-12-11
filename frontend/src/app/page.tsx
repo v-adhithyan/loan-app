@@ -14,6 +14,7 @@ const Home = () => {
   const [balanceSheet, setBalanceSheet] = useState<any[]>([]);
   const [submitMessage, setSubmitMessage] = useState<string | null>(null);
   const [showSubmitButton, setShowSubmitButton] = useState<boolean>(false);
+  const [errorMessages, setErrorMessages] = useState<string[]>([]);
 
   const handleStartApplication = async () => {
     try {
@@ -69,7 +70,12 @@ const Home = () => {
         });
         setBalanceSheet([]);
         setShowSubmitButton(false); // Hide the "Submit Application" button
-      } else {
+      } else if (response.status === 400) {
+        const errorData = await response.json();
+        const errorMessages = Object.values(errorData).flat(); // Extract and flatten error messages
+        setErrorMessages(errorMessages); 
+      }
+      else {
         console.error('Application submission failed with status:', response.status);
         setSubmitMessage('Application submission failed. Please try again.');
       }
@@ -90,6 +96,11 @@ const Home = () => {
         showSubmitButton ? (
           <div>
             <form>
+              {errorMessages.length > 0 && (
+                <div className="alert alert-danger mt-3">
+                  {errorMessages.join(', ')}
+                </div>
+              )}
               <div className="mb-3">
                 <label htmlFor="businessName" className="form-label">
                   Business Name:
@@ -175,7 +186,7 @@ const Home = () => {
             </button>
           </div>
         ) : (
-          <div className="alert alert-success mt-3" role="alert">
+          <div className="alert" role="alert">
             {submitMessage}
           </div>
         )
