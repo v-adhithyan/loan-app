@@ -8,6 +8,10 @@ from loan_app.models import LoanApplication, LoanDetails
 from loan_app.serializers import LoanDetailsSerializer
 from rest_framework.response import Response
 
+from loan_app.integrations.decision_engine.utils import calculate_preassessment_value
+
+from loan_app.integrations.decision_engine.handler import DecisionEngineHandler
+
 
 @api_view(['POST'])
 def initiate_loan_application(request):
@@ -25,14 +29,6 @@ def submit_loan_application(request):
         validated_data = serializer.validated_data
         established_year = validated_data['established_year']
 
-        # Validate established year
-        current_year = datetime.now().year
-        if established_year < 1500 or established_year > current_year:
-            return Response(
-                {'error': 'Established year must be between 1500 and the current year'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
         try:
             # Get or create a LoanApplication object using the provided uuid
             uuid = validated_data['uuid']
@@ -47,6 +43,13 @@ def submit_loan_application(request):
                 balance_sheet=validated_data['balance_sheet']
             )
             loan_details.save()
+
+            # Calculate pre-assessment before sending to decision engine
+            pre_assessment = calculate_preassessment_value(validated_data)
+            validated_data.pop('balance_sheet')
+            business_details = validated_data
+            decision_engine = DecisionEngineHandler(business_details, pre_assessment)
+            decision_engine.get_decision()
 
             return Response(
                 {'message': 'LoanDetails created successfully'},

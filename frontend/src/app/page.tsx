@@ -42,6 +42,7 @@ const Home = () => {
   const handleSubmitApplication = async () => {
     try {
       const data = {
+        uuid: uuid,
         business_name: formData.businessName,
         established_year: formData.establishedYear,
         loan_amount: formData.loanAmount,
@@ -56,7 +57,7 @@ const Home = () => {
         body: JSON.stringify(data),
       });
 
-      if (response.status === 200) {
+      if (response.status === 201) {
         const data = await response.json();
         setSubmitMessage(data.message);
         // Clear all data except the UUID
